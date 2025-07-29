@@ -1,17 +1,17 @@
-# Use OpenJDK base image with Maven installed
+# Use OpenJDK with Maven
 FROM maven:3.9.6-eclipse-temurin-17
 
 # Set working directory
 WORKDIR /app
 
-# Copy everything into the container
+# Copy project files
 COPY . .
 
-# Build the project
+# Build the app (skip tests for speed)
 RUN mvn clean package -DskipTests
 
-# Expose the port (Spring Boot will use this)
+# Expose dynamic port
 EXPOSE 8080
 
-# Run the jar file
-CMD ["java", "-jar", "target/VoipCallBackend-0.0.1-SNAPSHOT.jar"]
+# Run the correct JAR file
+CMD ["java", "-jar", "target/VoipCall-0.0.1-SNAPSHOT.jar"]
