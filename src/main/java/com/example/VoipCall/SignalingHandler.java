@@ -144,17 +144,30 @@ public class SignalingHandler extends TextWebSocketHandler {
                 });
     }
 
-    private void handleCallEnded(JSONObject json) {
-        String callerId = json.getString("from");
-        String receiverId = json.getString("to");
+    private void handleCallEnded(JSONObject json) throws Exception {
+    String callerId = json.getString("from");
+    String receiverId = json.getString("to");
 
-        callRecordRepository.findTopByCallerIdAndReceiverIdOrderByStartTimeDesc(callerId, receiverId)
-                .ifPresent(record -> {
-                    record.setEndTime(LocalDateTime.now());
-                    callRecordRepository.save(record);
-                    logger.info("Call ended: {} → {}", callerId, receiverId);
-                });
+    // Notify the other participant that the call has ended
+    String otherParticipantId = callerId.equals(json.getString("from")) ? receiverId : callerId;
+    WebSocketSession otherSession = users.get(otherParticipantId);
+    
+    if (otherSession != null && otherSession.isOpen()) {
+        JSONObject endNotification = new JSONObject();
+        endNotification.put("type", "end_call");
+        endNotification.put("from", callerId);
+        otherSession.sendMessage(new TextMessage(endNotification.toString()));
+        logger.info("Sent end call notification to {}", otherParticipantId);
     }
+
+    // Update call record
+    callRecordRepository.findTopByCallerIdAndReceiverIdOrderByStartTimeDesc(callerId, receiverId)
+            .ifPresent(record -> {
+                record.setEndTime(LocalDateTime.now());
+                callRecordRepository.save(record);
+                logger.info("Call ended: {} → {}", callerId, receiverId);
+            });
+}
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {

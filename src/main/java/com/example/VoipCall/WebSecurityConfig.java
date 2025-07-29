@@ -23,6 +23,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/calls/start").permitAll()
                         .requestMatchers("/api/users/role-view").permitAll()
+                        .requestMatchers("/api/calls/save").permitAll()
                         .anyRequest().authenticated())
                 .csrf().disable()
                 .httpBasic();

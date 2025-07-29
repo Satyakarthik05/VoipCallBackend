@@ -12,11 +12,10 @@ public class CallRecord {
 
     private String callerId;
     private String receiverId;
-
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-
-    // --- Getters and Setters ---
+    private String duration;
+    private String recordingPath;  
 
     public Long getId() {
         return id;
@@ -56,5 +55,21 @@ public class CallRecord {
 
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
+    }
+
+    public String getDuration() {
+        return duration;
+    }
+
+    public void setDuration(String duration) {
+        this.duration = duration;
+    }
+
+    public String getRecordingPath() {
+        return recordingPath;
+    }
+
+    public void setRecordingPath(String recordingPath) {
+        this.recordingPath = recordingPath;
     }
 }
