@@ -40,7 +40,7 @@ public class SignalingHandler extends TextWebSocketHandler {
         String type = json.getString("type");
         String userId = json.optString("userId");
 
-        switch (type) {
+       switch (type) {
             case "join":
                 users.put(userId, session);
                 logger.info("User {} joined (Total: {})", userId, users.size());
@@ -60,6 +60,18 @@ public class SignalingHandler extends TextWebSocketHandler {
 
             case "end_call":
                 handleCallEnded(json);
+                break;
+
+            case "mute_status":
+                handleMuteStatus(json);
+                break;
+
+            case "unmute_request":
+                handleUnmuteRequest(json);
+                break;
+
+            case "unmute_response":
+                handleUnmuteResponse(json);
                 break;
 
             case "offer":
@@ -173,5 +185,52 @@ public class SignalingHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         users.entrySet().removeIf(entry -> entry.getValue().equals(session));
         logger.info("WebSocket disconnected: {}", session.getId());
+    }
+
+
+      private void handleMuteStatus(JSONObject json) throws Exception {
+        String from = json.getString("from");
+        String to = json.getString("to");
+        boolean isMuted = json.getBoolean("isMuted");
+
+        WebSocketSession targetSession = users.get(to);
+        if (targetSession != null && targetSession.isOpen()) {
+            JSONObject muteStatus = new JSONObject();
+            muteStatus.put("type", "mute_status");
+            muteStatus.put("from", from);
+            muteStatus.put("isMuted", isMuted);
+            targetSession.sendMessage(new TextMessage(muteStatus.toString()));
+            logger.info("Sent mute status to {}: {}", to, isMuted);
+        }
+    }
+
+    private void handleUnmuteRequest(JSONObject json) throws Exception {
+        String from = json.getString("from");
+        String to = json.getString("to");
+
+        WebSocketSession targetSession = users.get(to);
+        if (targetSession != null && targetSession.isOpen()) {
+            JSONObject request = new JSONObject();
+            request.put("type", "unmute_request");
+            request.put("from", from);
+            targetSession.sendMessage(new TextMessage(request.toString()));
+            logger.info("Sent unmute request from {} to {}", from, to);
+        }
+    }
+
+    private void handleUnmuteResponse(JSONObject json) throws Exception {
+        String from = json.getString("from");
+        String to = json.getString("to");
+        boolean accepted = json.getBoolean("accepted");
+
+        WebSocketSession targetSession = users.get(to);
+        if (targetSession != null && targetSession.isOpen()) {
+            JSONObject response = new JSONObject();
+            response.put("type", "unmute_response");
+            response.put("from", from);
+            response.put("accepted", accepted);
+            targetSession.sendMessage(new TextMessage(response.toString()));
+            logger.info("Sent unmute response from {} to {}: {}", from, to, accepted);
+        }
     }
 }

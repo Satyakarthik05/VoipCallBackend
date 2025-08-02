@@ -24,6 +24,9 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/calls/start").permitAll()
                         .requestMatchers("/api/users/role-view").permitAll()
                         .requestMatchers("/api/calls/save").permitAll()
+                        .requestMatchers("/api/admin/**").permitAll()
+                        .requestMatchers("/api/admin/call-records").permitAll()
+                        .requestMatchers("/api/admin/transcribe/**").permitAll()
                         .anyRequest().authenticated())
                 .csrf().disable()
                 .httpBasic();
